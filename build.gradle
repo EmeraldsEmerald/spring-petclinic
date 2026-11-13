@@ -7,16 +7,17 @@ plugins {
   id 'org.cyclonedx.bom' version '3.2.4'
   id 'io.spring.javaformat' version '0.0.47'
   id "io.spring.nohttp" version "0.0.11"
+  id("pl.allegro.tech.build.axion-release") version "1.21.2"
 }
 
 gradle.startParameter.excludedTaskNames += [ "checkFormatAot", "checkFormatAotTest" ]
 
 group = 'org.springframework.samples'
-version = '4.0.0-SNAPSHOT'
+version = scmVersion.version
 
 java {
   toolchain {
-    languageVersion = JavaLanguageVersion.of(17)
+    languageVersion = JavaLanguageVersion.of(27)
   }
 }
 
@@ -65,6 +66,17 @@ tasks.named('test') {
 tasks.named("cyclonedxDirectBom").configure {
   dependsOn("compileJava")
   skipConfigs = [".*[Tt]est.*"]
+}
+
+tasks.register("openTestResults") {
+  group = "Other"
+  description = "Opens the index.html file containing test results after a build."
+  dependsOn("build")
+  doLast {
+    def file = tasks.named('test').get().reports.html.outputLocation.get().file("index.html").asFile
+
+    java.awt.Desktop.getDesktop().browse(file.toURI())
+  }
 }
 
 checkstyle {
